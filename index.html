@@ -340,7 +340,7 @@
   let stars = [];
   function resize(){
     c.width = innerWidth; c.height = innerHeight;
-    const n = Math.min(180, Math.floor(innerWidth * innerHeight / 9000));
+    const n = Math.min(320, Math.floor(innerWidth * innerHeight / 5000));
     stars = Array.from({length:n}, () => ({
       x: Math.random()*c.width,
       y: Math.random()*c.height,
