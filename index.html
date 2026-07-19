@@ -129,6 +129,29 @@
     width:100%;border:1px solid var(--border);border-radius:.9rem;
     background:#fff;
   }
+  .contact-form{max-width:46rem}
+  .contact-form .field{margin-bottom:1rem}
+  .contact-form label{
+    display:block;font-size:.85rem;font-weight:600;
+    letter-spacing:.04em;margin-bottom:.35rem;
+  }
+  .contact-form input[type=text],
+  .contact-form input[type=email],
+  .contact-form textarea{
+    width:100%;padding:.6rem .75rem;border-radius:.6rem;
+    border:1px solid var(--border);background:var(--bg-soft);
+    color:var(--text);font:inherit;
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus{outline:2px solid var(--accent-2);outline-offset:1px}
+  .contact-form textarea{resize:vertical;min-height:8rem}
+  .contact-form .hp{position:absolute;left:-9999px;opacity:0}
+  .contact-form button{cursor:pointer}
+  .contact-form button:disabled{opacity:.6;cursor:wait}
+  #cf-status{margin-top:.8rem;font-size:.92rem;min-height:1.4em}
+  #cf-status.ok{color:#0d3b1e;font-weight:600}
+  #cf-status.err{color:#4c0e0e;font-weight:600}
+
   footer{
     border-top:1px solid var(--border);
     padding:2.2rem 1.25rem;text-align:center;color:var(--muted);font-size:.88rem;
@@ -165,7 +188,7 @@
       and beyond.
     </p>
     <div class="hero-ctas">
-      <a class="btn primary" href="mailto:daniel@keerie.co.uk">Get in touch</a>
+      <a class="btn primary" href="#contact">Get in touch</a>
       <a class="btn" href="https://github.com/dakeerie" target="_blank" rel="noopener">GitHub</a>
       <a class="btn" href="https://www.linkedin.com/in/daniel-keerie" target="_blank" rel="noopener">LinkedIn</a>
     </div>
@@ -321,13 +344,33 @@
 
   <section id="contact">
     <h2>Contact</h2>
-    <p style="color:#000000">
-      The fastest way to reach me is email:
-      <a href="mailto:daniel@keerie.co.uk">daniel@keerie.co.uk</a>.
+    <p style="max-width:46rem;color:#000000;margin-bottom:1.4rem">
+      Drop me a message below and it'll land straight in my inbox.
       You can also find me on
       <a href="https://github.com/dakeerie" target="_blank" rel="noopener">GitHub</a> and
       <a href="https://www.linkedin.com/in/daniel-keerie" target="_blank" rel="noopener">LinkedIn</a>.
     </p>
+    <form id="contact-form" class="card contact-form" novalidate>
+      <input type="hidden" name="access_key" value="1dd85034-0140-42a3-8a2f-40d4432eed8c">
+      <input type="hidden" name="subject" value="New message from keerie.co.uk">
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="grid2">
+        <div class="field">
+          <label for="cf-name">Name</label>
+          <input id="cf-name" name="name" type="text" required autocomplete="name" placeholder="Your name">
+        </div>
+        <div class="field">
+          <label for="cf-email">Email</label>
+          <input id="cf-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+        </div>
+      </div>
+      <div class="field">
+        <label for="cf-message">Message</label>
+        <textarea id="cf-message" name="message" rows="6" required placeholder="What would you like to talk about?"></textarea>
+      </div>
+      <button type="submit" class="btn primary">Send message</button>
+      <p id="cf-status" role="status" aria-live="polite"></p>
+    </form>
   </section>
 </main>
 
@@ -364,6 +407,38 @@
   }
   addEventListener('resize', resize);
   resize(); draw();
+
+  // contact form → Web3Forms (email address never appears in this page)
+  const form = document.getElementById('contact-form');
+  const status = document.getElementById('cf-status');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!form.reportValidity()) return;
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true;
+    status.className = '';
+    status.textContent = 'Sending…';
+    try{
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Accept':'application/json'},
+        body: JSON.stringify(Object.fromEntries(new FormData(form)))
+      });
+      const data = await res.json();
+      if(data.success){
+        status.className = 'ok';
+        status.textContent = 'Thanks — your message is on its way. I\'ll get back to you soon.';
+        form.reset();
+      }else{
+        throw new Error(data.message || 'Submission failed');
+      }
+    }catch(err){
+      status.className = 'err';
+      status.textContent = 'Sorry, something went wrong sending that. Please try again, or reach me via LinkedIn.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
 </script>
 </body>
 </html>
